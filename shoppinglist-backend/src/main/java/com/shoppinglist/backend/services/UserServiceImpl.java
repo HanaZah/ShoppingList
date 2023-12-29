@@ -1,5 +1,6 @@
 package com.shoppinglist.backend.services;
 
+import com.shoppinglist.backend.models.DTOs.LoginUserDTO;
 import com.shoppinglist.backend.models.DTOs.NewUserDTO;
 import com.shoppinglist.backend.models.User;
 import com.shoppinglist.backend.repositories.UserRepository;
@@ -37,5 +38,17 @@ public class UserServiceImpl implements UserService {
         User newUser = new User(username, password);
 
         return userRepository.save(newUser);
+    }
+
+    @Override
+    public User loginUser(LoginUserDTO loginData) {
+        User user = userRepository.findUserByUsernameAndDeleted(loginData.getUsername(), false)
+                .orElse(null);
+
+        if(user != null && passwordEncoder.matches(loginData.getPassword(), user.getPassword())) {
+            return user;
+        }
+
+        return null;
     }
 }

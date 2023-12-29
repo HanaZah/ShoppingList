@@ -1,6 +1,6 @@
 package com.shoppinglist.backend.controllers;
 
-import com.shoppinglist.backend.models.DTOs.NewUserDTO;
+import com.shoppinglist.backend.models.DTOs.LoginUserDTO;
 import com.shoppinglist.backend.models.User;
 import com.shoppinglist.backend.services.UserService;
 import com.shoppinglist.backend.utils.FieldErrorsExtractor;
@@ -14,29 +14,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("user/register")
-public class RegistrationController {
+@RequestMapping("user/login")
+public class LoginController {
 
     private final UserService userService;
 
-    public RegistrationController(UserService userService) {
+    public LoginController(UserService userService) {
         this.userService = userService;
     }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map> requestBodyNotValid(MethodArgumentNotValidException e) {
-
-        Map<String, String> response = new HashMap<>();
-        FieldErrorsExtractor extractor = new FieldErrorsExtractor(e);
-        String message = (extractor.getFailedFields().size() == 1)? extractor.getFirstError().getDefaultMessage()
-                : "Username and password are required";
-
-        response.put("error", message);
-
-        return ResponseEntity.status(401).body(response);
-    }
-
-    @ExceptionHandler(HttpMessageNotReadableException.class)
+    @ExceptionHandler({HttpMessageNotReadableException.class, MethodArgumentNotValidException.class})
     public ResponseEntity<Map> noRequestBody() {
 
         Map<String, String> result = new HashMap<>();
@@ -54,18 +41,18 @@ public class RegistrationController {
         return ResponseEntity.status(401).body(result);
     }
 
-
     @PostMapping
-    public ResponseEntity<Map> registerUser(@RequestBody @Valid  NewUserDTO userData) {
+    public ResponseEntity<Map> login(@RequestBody @Valid LoginUserDTO loginData) {
 
         Map<String, String> response = new HashMap<>();
-        User createdUser = userService.createNewUser(userData);
-        if(createdUser == null) {
-            response.put("error", "Username is already taken");
+        User loggedUser = userService.loginUser(loginData);
+
+        if(loggedUser == null) {
+            response.put("error", "Username or password incorrect");
             return ResponseEntity.status(401).body(response);
         }
 
-        response.put("message", "User " + createdUser.getUsername() + " successfully created");
+        response.put("message", "Logged in");
 
         return ResponseEntity.ok(response);
     }

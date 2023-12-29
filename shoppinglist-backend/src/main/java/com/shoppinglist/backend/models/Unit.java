@@ -14,7 +14,7 @@ public class Unit {
 
     private String shortcut;
 
-    @ManyToMany(mappedBy = "possibleUnits")
+    @ManyToMany(mappedBy = "unitsAllowed")
     private List<CatalogueItem> catalogueItems = new ArrayList<>();
 
     public Unit(String shortcut) {
