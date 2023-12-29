@@ -40,7 +40,7 @@ public class RegistrationController {
     public ResponseEntity<Map> noRequestBody() {
 
         Map<String, String> result = new HashMap<>();
-        result.put("message", "Name, email and password are required.");
+        result.put("message", "Username and password are required.");
 
         return ResponseEntity.status(401).body(result);
     }
