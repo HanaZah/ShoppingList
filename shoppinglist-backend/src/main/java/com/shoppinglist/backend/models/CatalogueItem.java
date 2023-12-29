@@ -16,12 +16,12 @@ public class CatalogueItem {
     @Column(unique = true)
     private String name;
 
-    @ElementCollection
-    private List<String> unitsAllowed = new ArrayList<>();
+    @ManyToMany
+    private List<Unit> unitsAllowed = new ArrayList<>();
 
     private boolean deleted = false;
 
-    public CatalogueItem(String name, List<String> unitsAllowed) {
+    public CatalogueItem(String name, List<Unit> unitsAllowed) {
         this.name = name;
         this.unitsAllowed = unitsAllowed;
     }
@@ -37,15 +37,20 @@ public class CatalogueItem {
         this.name = name;
     }
 
-    public List<String> getUnitsAllowed() {
+    @JoinTable(
+            name = "catalogue_unit",
+            joinColumns = @JoinColumn(name = "catalogue_item_id"),
+            inverseJoinColumns = @JoinColumn(name = "unit_id")
+    )
+    public List<Unit> getUnitsAllowed() {
         return unitsAllowed;
     }
 
-    public void setUnitsAllowed(List<String> unitsAllowed) {
+    public void setUnitsAllowed(List<Unit> unitsAllowed) {
         this.unitsAllowed = unitsAllowed;
     }
 
-    public void addUnitAllowed(String unit) {
+    public void addUnitAllowed(Unit unit) {
         if(!unitsAllowed.contains(unit)) {
             unitsAllowed.add(unit);
         }
