@@ -1,12 +1,13 @@
 package com.shoppinglist.backend.controllers;
 
+import com.shoppinglist.backend.models.DTOs.AuthResponseDTO;
 import com.shoppinglist.backend.models.DTOs.LoginUserDTO;
-import com.shoppinglist.backend.models.User;
+import com.shoppinglist.backend.services.AuthService;
 import com.shoppinglist.backend.services.UserService;
-import com.shoppinglist.backend.utils.FieldErrorsExtractor;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,9 +19,11 @@ import java.util.Map;
 public class LoginController {
 
     private final UserService userService;
+    private final AuthService authService;
 
-    public LoginController(UserService userService) {
+    public LoginController(UserService userService, AuthService authService) {
         this.userService = userService;
+        this.authService = authService;
     }
 
     @ExceptionHandler({HttpMessageNotReadableException.class, MethodArgumentNotValidException.class})
@@ -28,6 +31,16 @@ public class LoginController {
 
         Map<String, String> result = new HashMap<>();
         result.put("error", "Username and password are required.");
+
+        return ResponseEntity.status(401).body(result);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<Map> badCredentialsError(Exception e) {
+
+        Map<String, String> result = new HashMap<>();
+
+        result.put("message", "Email or password is incorrect.");
 
         return ResponseEntity.status(401).body(result);
     }
@@ -42,17 +55,10 @@ public class LoginController {
     }
 
     @PostMapping
-    public ResponseEntity<Map> login(@RequestBody @Valid LoginUserDTO loginData) {
+    public ResponseEntity<AuthResponseDTO> login(@RequestBody @Valid LoginUserDTO loginData) {
 
-        Map<String, String> response = new HashMap<>();
-        User loggedUser = userService.loginUser(loginData);
+        AuthResponseDTO response = authService.loginUser(loginData);
 
-        if(loggedUser == null) {
-            response.put("error", "Username or password incorrect");
-            return ResponseEntity.status(401).body(response);
-        }
-
-        response.put("message", "Logged in");
 
         return ResponseEntity.ok(response);
     }

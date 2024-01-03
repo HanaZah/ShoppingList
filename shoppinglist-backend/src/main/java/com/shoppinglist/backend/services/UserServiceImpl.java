@@ -1,10 +1,16 @@
 package com.shoppinglist.backend.services;
 
+import com.shoppinglist.backend.models.DTOs.AuthResponseDTO;
 import com.shoppinglist.backend.models.DTOs.LoginUserDTO;
 import com.shoppinglist.backend.models.DTOs.NewUserDTO;
+import com.shoppinglist.backend.models.Role;
 import com.shoppinglist.backend.models.User;
 import com.shoppinglist.backend.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -36,19 +42,14 @@ public class UserServiceImpl implements UserService {
 
         String password = passwordEncoder.encode(userData.getPassword());
         User newUser = new User(username, password);
+        newUser.setRole(Role.ROLE_USER);
 
         return userRepository.save(newUser);
     }
 
     @Override
-    public User loginUser(LoginUserDTO loginData) {
-        User user = userRepository.findUserByUsernameAndDeleted(loginData.getUsername(), false)
-                .orElse(null);
-
-        if(user != null && passwordEncoder.matches(loginData.getPassword(), user.getPassword())) {
-            return user;
-        }
-
-        return null;
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return userRepository.findUserByUsernameAndDeleted(username, false)
+                .orElseThrow(() -> new UsernameNotFoundException("Username is incorrect"));
     }
 }
